@@ -1,28 +1,28 @@
 import numpy as np
-import sympy as sym
+from sympy import * #因为sympy体系与其他内容命名不冲突
 import scipy
 
 def get_g(fexpr,xvec,display=False):
-    gexpr = [sym.diff(fexpr ,x) for x in xvec]
+    gexpr = [diff(fexpr ,x) for x in xvec]
     if display:
         print('input function:')
-        sym.pprint(fexpr,use_unicode=True)
+        pprint(fexpr,use_unicode=True)
         print('output gradient:')
-        sym.pprint(gexpr,use_unicode=True)
+        pprint(gexpr,use_unicode=True)
     return gexpr
 
-def get_G(gexpr,xvec,display=False):
-    Gexpr = sym.Matrix([[sym.diff(g, x) for x in xvec] for g in gexpr])
+def get_G(fexpr,xvec,display=False):
+    Gexpr = hessian(fexpr,xvec)
     if display:
-        print('input gradient:')
-        sym.pprint(gexpr,use_unicode=True)
+        print('input function:')
+        pprint(fexpr,use_unicode=True)
         print('output Hessian:')
-        sym.pprint(Gexpr,use_unicode=True)
-    return gexpr
+        pprint(Gexpr,use_unicode=True)
+    return Gexpr
 
 if __name__ == "__main__":
-    xvec = sym.symbols ('x1:3') # 定义变量x1,x2
-    fexpr = xvec[0]**2+xvec[1]*sym.cos(xvec[1])
+    xvec = symbols ('x1:3') # 定义变量x1,x2
+    fexpr = xvec[0]**2+xvec[1]*cos(xvec[1])
     gexpr = get_g(fexpr,xvec,display=True)
-    Gexpr = get_G(gexpr,xvec,display=True)
+    Gexpr = get_G(fexpr,xvec,display=True)
     
