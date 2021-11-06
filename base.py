@@ -22,11 +22,18 @@ def get_G(fexpr, xvec, display=False):
         pprint(Gexpr, use_unicode=True)
     return Gexpr
 
+def interval_check(fun,step=1):
+    #适用于一元f(x_k+alpha*d_k)，目的是找到一个先减小后增加的区间
+    left,right = 0,step
+    while fun(right)<fun(left):
+        right *= 2 #之后改
+    return left, right
+
 
 def golden_section_search(fun, eps=1e-5, interval=None):
     if interval is None:
-        print('暂时不处理这一功能')
-        return
+        interval = interval_check(fun)
+        interval = list(interval)
     key = (np.sqrt(5)-1)/2  # 0.618
     len_interval = interval[1]-interval[0]
     right = interval[0]+key*len_interval
@@ -49,6 +56,8 @@ if __name__ == "__main__":
     Gexpr = get_G(fexpr, xvec, display=True)
 
     print('黄金分隔法测试：')
-    def foo(x): return 1-x*np.exp(-x**2)
+    foo = lambda x:1-x*np.exp(-x**2)
     print('0.618法', golden_section_search(
         foo, 0.01, interval=[0, 1]), '解析解', np.sqrt(0.5))
+    foo2 = lambda x:1-0.1*x*np.exp(-(0.1*x)**2)
+    print('不给出区间的情况下：',golden_section_search(foo2,0.01),'解析解',10*np.sqrt(0.5))
