@@ -24,10 +24,13 @@ def get_G(fexpr, xvec, display=False):
 
 def interval_check(fun,step=1):
     #适用于一元f(x_k+alpha*d_k)，目的是找到一个先减小后增加的区间
-    left,right = 0,step
-    while fun(right)<fun(left):
-        right *= 2 #之后改
-    return left, right
+    if fun(0)<fun(step):
+        return 0,step
+    key = 0
+    while fun(key+step)<fun(key):
+        key+=step
+    #在[key-step,key,key+step]这段是先减小后增加，支持黄金分割
+    return key-step,key+step
 
 
 def golden_section_search(fun, eps=1e-5, interval=None):
