@@ -39,7 +39,7 @@ def interval_check(fun, step=1):
     return key-step, key+step
 
 
-def golden_section_search(fun, eps=1e-5, interval=None):
+def golden_section_search(fun, eps=1e-5, interval=None,printout=False):
     if interval is None:  # 没给U型区间就需要找
         interval = interval_check(fun)
         interval = list(interval)  # 元组换成列表
@@ -53,12 +53,10 @@ def golden_section_search(fun, eps=1e-5, interval=None):
             interval[1], right, left = right, left, right-key*len_interval
         else:
             interval[0], left, right = left, right, left+key*len_interval
-        print(interval)
+        if printout:print(interval)
     return (interval[1]+interval[0])/2
 
 
-def get_a(f,xk,dk):
-    
 
 def damped_newton(fexpr, xvec, x0, eps):  # 阻尼牛顿法  x0初始点  eps精确度
     f, g, G = [get_fun(expr, xvec) for expr in (
@@ -68,9 +66,11 @@ def damped_newton(fexpr, xvec, x0, eps):  # 阻尼牛顿法  x0初始点  eps精
     delta = np.linalg.norm(gk, ord=2)
     while delta > eps:
         dk = -np.linalg.pinv(Gk)@gk  # 牛顿法，用的伪逆是因为阻尼不能处理Gk奇异情况下
-        def fa(a): return f(xk+a*dk)
+        def fa(a):
+            x_temp = xk+a*dk
+            return f(*x_temp)
         ak = golden_section_search(fa)
-        xk += ak*dk
+        xk = xk + ak*dk
         gk, Gk = g(*xk), G(*xk)
         delta = np.linalg.norm(gk, ord=2)
     return xk
@@ -98,8 +98,11 @@ def modified_newton(fexpr, xvec, x0, eps):
                 dk = -dk  # 非正定反向（和书上有些区别，是判断的Gk半正定性）
         except:
             dk = -gk  # 负梯度
+        def fa(a):
+            x_temp = xk+a*dk
+            return f(*x_temp)
         ak = golden_section_search(fa)
-        xk += ak*dk
+        xk = xk + ak*dk
         gk, Gk = g(*xk), G(*xk)
         delta = np.linalg.norm(gk, ord=2)
     return xk
@@ -115,7 +118,7 @@ if __name__ == "__main__":
     print('黄金分隔法测试：')
     def foo(x): return 1-x*np.exp(-x**2)
     print('0.618法', golden_section_search(
-        foo, 0.01, interval=[0, 1]), '解析解', np.sqrt(0.5))
+        foo, 0.01, interval=[0, 1],printout=True), '解析解', np.sqrt(0.5))
 
     def foo2(x): return 1-0.1*x*np.exp(-(0.1*x)**2)
     print('不给出区间的情况下：', golden_section_search(
@@ -124,5 +127,11 @@ if __name__ == "__main__":
     print("修正牛顿法+正定二次函数")
     fexpr = xvec[0]**2+xvec[1]**2+1*xvec[0]*xvec[1]  # 正定的二次函数
     x = modified_newton(fexpr, xvec, (1, 1), eps=1e-5)
+    pprint(fexpr)
+    print('结果：', x)
+
+    print("阻尼牛顿法+正定二次函数")
+    fexpr = xvec[0]**2+xvec[1]**2+1*xvec[0]*xvec[1]  # 正定的二次函数
+    x = damped_newton(fexpr, xvec, (1, 1), eps=1e-5)
     pprint(fexpr)
     print('结果：', x)
