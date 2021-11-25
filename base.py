@@ -54,7 +54,7 @@ def golden_section_search(fun, eps=1e-5, interval=None, printout=False):
         else:
             interval[0], left, right = left, right, left+key*len_interval
         if printout:
-            print(interval)
+            print("interval:",interval)
     return (interval[1]+interval[0])/2
 
 
@@ -110,30 +110,4 @@ def modified_newton(fexpr, xvec, x0, eps):
     return xk
 
 
-if __name__ == "__main__":
-    print('梯度与Hessian测试：')
-    xvec = symbols('x1:3')  # 定义变量x1,x2
-    fexpr = xvec[0]**2+xvec[1]*cos(xvec[1])
-    gexpr = get_g(fexpr, xvec, display=True)
-    Gexpr = get_G(fexpr, xvec, display=True)
 
-    print('黄金分隔法测试：')
-    def foo(x): return 1-x*np.exp(-x**2)
-    print('0.618法', golden_section_search(
-        foo, 0.01, interval=[0, 1], printout=True), '解析解', np.sqrt(0.5))
-
-    def foo2(x): return 1-0.1*x*np.exp(-(0.1*x)**2)
-    print('不给出区间的情况下：', golden_section_search(
-        foo2, 0.01), '解析解', 10*np.sqrt(0.5))
-
-    print("修正牛顿法+正定二次函数")
-    fexpr = xvec[0]**2+xvec[1]**2+1*xvec[0]*xvec[1]  # 正定的二次函数
-    x = modified_newton(fexpr, xvec, (1, 1), eps=1e-5)
-    pprint(fexpr)
-    print('结果：', x)
-
-    print("阻尼牛顿法+正定二次函数")
-    fexpr = xvec[0]**2+xvec[1]**2+1*xvec[0]*xvec[1]  # 正定的二次函数
-    x = damped_newton(fexpr, xvec, (1, 1), eps=1e-5)
-    pprint(fexpr)
-    print('结果：', x)
