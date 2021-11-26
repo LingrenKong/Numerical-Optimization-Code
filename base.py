@@ -89,6 +89,8 @@ def modified_newton(fexpr, xvec, x0, eps):
     f, g, G = [get_fun(expr, xvec) for expr in (fexpr, get_g(
         fexpr, xvec), get_G(fexpr, xvec))]  # 有点挤，但是其实就是求fgG
     xk = np.array(x0)
+    print(xk.shape)
+    print(*xk)
     gk, Gk = g(*xk), G(*xk)
     # print(gk,Gk)
     delta = np.linalg.norm(gk, ord=2)  # 终止条件用gk二范数
@@ -109,5 +111,6 @@ def modified_newton(fexpr, xvec, x0, eps):
         delta = np.linalg.norm(gk, ord=2)
     return xk
 
-
+def BFGS(fexpr, xvec, x0, eps):
+    pass
 
