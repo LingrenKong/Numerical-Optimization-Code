@@ -112,7 +112,7 @@ def is_pos_def(A):
         return False
 
 
-def modified_newton(fexpr, xvec, x0, eps, maxiter=50000):
+def modified_newton(fexpr, xvec, x0, eps, e1=0.01, e2=0.01, maxiter=50000):
     f = get_fun(fexpr, xvec, name='f')
     g = get_fun(get_g(fexpr, xvec), xvec, name='g')
     G = get_fun(get_G(fexpr, xvec), xvec, name='G')
@@ -125,10 +125,16 @@ def modified_newton(fexpr, xvec, x0, eps, maxiter=50000):
     while delta > eps and count <= maxiter:
         try:
             dk = -np.linalg.inv(Gk)@gk  # 牛顿法
-            if not is_pos_def(Gk):
-                dk = -dk  # 非正定反向（和书上有些区别，是判断的Gk半正定性）
+            # if not is_pos_def(Gk):
+            # dk = -dk  # 非正定反向（和书上有些区别，是判断的Gk半正定性）
         except:
-            dk = -gk  # 负梯度
+            dk = -gk  # 奇异情况采用负梯度
+        cos = np.dot(dk, gk)/(np.linalg.norm(gk, ord=2)
+                              * np.linalg.norm(dk, ord=2))
+        if cos > e1:
+            dk = -dk  # step4
+        if np.abs(cos) < e2:
+            dk = -gk  # step5->6
 
         def fa(a):
             x_temp = xk+a*dk
