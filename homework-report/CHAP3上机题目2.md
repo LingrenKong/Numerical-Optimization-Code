@@ -65,3 +65,40 @@ $$
 
 * 防止死循环，设置最长迭代次数
 * 之前根据理论设计了正定判断，但是发现不合适，删去
+* $\epsilon_1=0.1,\epsilon_2=0.01$，这个超参数对问题影响是毁灭级的，因为自始至终余弦约为0.04，如果错误设置阈值会导致每次都反向，数值溢出。
+
+
+
+### 拟牛顿方法
+
+由于拟牛顿方法共性较大，所以直接三合一实现。
+
+函数名称：`quasi_newton`
+
+算法 $3.4$ (拟 Newton 方法的结构)
+步 1 给定 $x_{0} \in \mathbb{R}^{n}$, 对称正定阵 $H_{0} \in \mathbb{R}^{n \times n}, \varepsilon>0, k:=0$;
+步 2 若终止准则满足, 则输出有关信息, 停止迭代;
+步 3 计算 $d_{k}=-H_{k} g_{k}$;
+步 4 沿方向 $d_{k}$ 进行线搜索求 $\alpha_{k}>0$, 令 $x_{k+1}=x_{k}+\alpha_{k} d_{k}$;
+步 5 修正 $H_{k}$ 得 $H_{k+1}$, 使 $H_{k+1}$ 满足 (3.21) 式, $k:=k+1$, 转步2
+
+拟牛顿计算：
+
+$s_{k}=x_{k+1}-x_{k}$
+$y_{k}=g_{k+1}-g_{k}$
+
+SR1：
+$$
+H_{k+1}^{\mathrm{SR} 1}=H_{k}+\frac{\left(s_{k}-H_{k} y_{k}\right)\left(s_{k}-H_{k} y_{k}\right)^{\mathrm{T}}}{\left(s_{k}-H_{k} y_{k}\right)^{\mathrm{T}} y_{k}}
+$$
+DFP：
+$$
+H_{k+1}^{\mathrm{DFP}}=H_{k}+\frac{s_{k} s_{k}^{\mathrm{T}}}{s_{k}^{\mathrm{T}} y_{k}}-\frac{H_{k} y_{k} y_{k}^{\mathrm{T}} H_{k}}{y_{k}^{\mathrm{T}} H_{k} y_{k}}
+$$
+BFGS：
+$$
+H_{k+1}^{\mathrm{BFGS}}=H_{k}+\left(1+\frac{y_{k}^{\mathrm{T}} H_{k} y_{k}}{y_{k}^{\mathrm{T}} s_{k}}\right) \frac{s_{k} s_{k}^{\mathrm{T}}}{y_{k}^{\mathrm{T}} s_{k}}-\left(\frac{s_{k} y_{k}^{\mathrm{T}} H_{k}+H_{k} y_{k} s_{k}^{\mathrm{T}}}{y_{k}^{\mathrm{T}} s_{k}}\right)
+$$
+代码实现的额外修改：
+
+* 防止死循环，设置最长迭代次数
