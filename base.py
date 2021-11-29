@@ -4,8 +4,9 @@ from sympy import *  # 因为sympy体系与其他内容命名不冲突
 import scipy
 
 
-def fun_counter(fun,name=None):
+def fun_counter(fun, name=None):
     num = 0
+
     def wrapper(*args, **kwargs):
         nonlocal num
         num += 1
@@ -17,8 +18,7 @@ def fun_counter(fun,name=None):
     return wrapper
 
 
-
-#@fun_counter
+# @fun_counter
 def get_g(fexpr, xvec, display=False):
     gexpr = [diff(fexpr, x) for x in xvec]
     if display:
@@ -28,7 +28,9 @@ def get_g(fexpr, xvec, display=False):
         pprint(gexpr, use_unicode=True)
     return gexpr
 
-#@fun_counter
+# @fun_counter
+
+
 def get_G(fexpr, xvec, display=False):
     Gexpr = hessian(fexpr, xvec)
     if display:
@@ -39,9 +41,9 @@ def get_G(fexpr, xvec, display=False):
     return Gexpr
 
 
-def get_fun(expr, x, method='numpy',name=None):
+def get_fun(expr, x, method='numpy', name=None):
     # Sympy表达式转换为数值函数
-    return fun_counter(lambdify(x, expr, method),name)
+    return fun_counter(lambdify(x, expr, method), name)
 
 
 def interval_check(fun, step=1):
@@ -53,6 +55,7 @@ def interval_check(fun, step=1):
         key += step
     # 在[key-step,key,key+step]这段是先减小后增加，支持黄金分割
     return key-step, key+step
+
 
 @fun_counter
 def golden_section_search(fun, eps=1e-5, interval=None, printout=False):
@@ -70,23 +73,25 @@ def golden_section_search(fun, eps=1e-5, interval=None, printout=False):
         else:
             interval[0], left, right = left, right, left+key*len_interval
         if printout:
-            print("interval:",interval)
+            print("interval:", interval)
     return (interval[1]+interval[0])/2
 
 
-def damped_newton(fexpr, xvec, x0, eps):  # 阻尼牛顿法  x0初始点  eps精确度
-    f = get_fun(fexpr,xvec,name='f')
-    g = get_fun(get_g(fexpr, xvec),xvec,name='g')
-    G = get_fun(get_G(fexpr, xvec),xvec,name='G')
+def damped_newton(fexpr, xvec, x0, eps, maxiter=50000):  # 阻尼牛顿法  x0初始点  eps精确度
+    f = get_fun(fexpr, xvec, name='f')
+    g = get_fun(get_g(fexpr, xvec), xvec, name='g')
+    G = get_fun(get_G(fexpr, xvec), xvec, name='G')
     xk = np.array(x0)
     gk, Gk = g(*xk), G(*xk)
     delta = np.linalg.norm(gk, ord=2)
-    while delta > eps:
+    count = 0
+    while delta > eps and count <= maxiter:
         try:
             dk = -np.linalg.pinv(Gk)@gk
         except:
             print("不适用阻尼牛顿法，有Gk不可逆")
             return None
+
         def fa(a):
             x_temp = xk+a*dk
             return f(*x_temp)
@@ -94,7 +99,9 @@ def damped_newton(fexpr, xvec, x0, eps):  # 阻尼牛顿法  x0初始点  eps精
         xk = xk + ak*dk
         gk, Gk = g(*xk), G(*xk)
         delta = np.linalg.norm(gk, ord=2)
+        count += 1
     return xk
+
 
 @fun_counter
 def is_pos_def(A):
@@ -105,16 +112,17 @@ def is_pos_def(A):
         return False
 
 
-def modified_newton(fexpr, xvec, x0, eps):
-    f = get_fun(fexpr,xvec,name='f')
-    g = get_fun(get_g(fexpr, xvec),xvec,name='g')
-    G = get_fun(get_G(fexpr, xvec),xvec,name='G')
+def modified_newton(fexpr, xvec, x0, eps, maxiter=50000):
+    f = get_fun(fexpr, xvec, name='f')
+    g = get_fun(get_g(fexpr, xvec), xvec, name='g')
+    G = get_fun(get_G(fexpr, xvec), xvec, name='G')
     xk = np.array(x0)
     print(*xk)
     gk, Gk = g(*xk), G(*xk)
     # print(gk,Gk)
     delta = np.linalg.norm(gk, ord=2)  # 终止条件用gk二范数
-    while delta > eps:
+    count = 0
+    while delta > eps and count <= maxiter:
         try:
             dk = -np.linalg.inv(Gk)@gk  # 牛顿法
             if not is_pos_def(Gk):
@@ -129,8 +137,9 @@ def modified_newton(fexpr, xvec, x0, eps):
         xk = xk + ak*dk
         gk, Gk = g(*xk), G(*xk)
         delta = np.linalg.norm(gk, ord=2)
+        count += 1
     return xk
+
 
 def BFGS(fexpr, xvec, x0, eps):
     pass
-
